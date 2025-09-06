@@ -1,0 +1,77 @@
+package main
+
+import (
+	"context"
+	"flag"
+	"fmt"
+	"log"
+	"path/filepath"
+	"strings"
+
+	"summarizer/internal"
+)
+
+func main() {
+	pdfPath := flag.String("input", "", "Path to PDF judgment")
+	query := flag.String("query", "", "Question or 'summary' to generate summary")
+	configPath := flag.String("config", "config.yaml", "Path to config")
+	flag.Parse()
+
+	if *pdfPath == "" || *query == "" {
+		log.Fatal("Usage: --input file.pdf --query 'summary' or any question")
+	}
+
+	cfg, err := internal.LoadConfig(*configPath)
+	if err != nil {
+		log.Fatalf("Failed loading config: %v", err)
+	}
+
+	text, err := internal.ExtractTextFromPDF(*pdfPath)
+	if err != nil {
+		log.Fatalf("PDF extraction failed: %v", err)
+	}
+
+	chunks := internal.ChunkText(text, cfg.MaxChunkTokens)
+
+	filename := filepath.Base(*pdfPath)
+
+	// Store embeddings for each chunk (idempotent: skip if exists)
+	for i, chunk := range chunks {
+		emb32, err := internal.GenerateEmbedding(cfg.Ollama.BaseURL, cfg.EmbeddingModel, chunk)
+		if err != nil {
+			log.Fatalf("Embedding generation failed: %v", err)
+		}
+		emb64 := internal.Float32ToFloat64(emb32)
+		err = internal.StoreChunkEmbedding(cfg.Database.DSN, cfg.Database.Table, filename, i, chunk, emb64)
+		if err != nil {
+			log.Fatalf("DB insert failed: %v", err)
+		}
+	}
+
+	// Generate embedding for user query
+	queryEmb32, err := internal.GenerateEmbedding(cfg.Ollama.BaseURL, cfg.EmbeddingModel, *query)
+	if err != nil {
+		log.Fatalf("Query embedding failed: %v", err)
+	}
+	queryEmb64 := internal.Float32ToFloat64(queryEmb32)
+
+	// Retrieve relevant chunks by similarity
+	topChunks, err := internal.SearchRelevantChunks(cfg.Database.DSN, cfg.Database.Table, filename, queryEmb64, 5)
+	if err != nil {
+		log.Fatalf("Retrieval failed: %v", err)
+	}
+
+	ctx := context.Background() // or context.WithTimeout, context.WithCancel, etc.
+
+
+	// Build prompt and get final answer
+	prompt := internal.BuildContextPrompt(topChunks, *query)
+	answer, err := internal.SummarizeWithLangChain(ctx, cfg.Ollama.BaseURL, cfg.Model, prompt)
+	if err != nil {
+		log.Fatalf("Summarization failed: %v", err)
+	}
+
+	fmt.Println(strings.TrimSpace(answer))
+
+
+}

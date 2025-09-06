@@ -1,0 +1,10 @@
+model: llama3
+embedding_model: nomic-embed-text
+max_chunk_tokens: 500
+
+database:
+  dsn: "postgres://postgres:postgres@localhost:5432/demo?sslmode=disable"
+  table: embeddings
+
+ollama:
+  base_url: "http://localhost:11434"
