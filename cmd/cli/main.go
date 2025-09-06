@@ -9,7 +9,9 @@ import (
 )
 
 func main() {
-	if err := cli.Run(); err != nil {
+	apiBase := "http://localhost:8080"
+
+	if err := cli.Run(apiBase); err != nil {
 		log.Fatal(err)
 		os.Exit(1)
 	}
