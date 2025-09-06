@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>mSpace API Documentation</title>
+<style>
+  body { font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; background: #f7f8fa; color: #333; margin: 0; padding: 20px; }
+  h1 { border-bottom: 2px solid #1a73e8; padding-bottom: 0.3em; }
+  h2, h3 { color: #1a73e8; margin-top: 1em; cursor: pointer; }
+  section { margin-bottom: 1em; background: white; border-radius: 8px; padding: 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+  .collapsible-content { display: none; margin-top: 10px; }
+  pre { background: #1e1e1e; color: #d4d4d4; padding: 15px; border-radius: 6px; overflow-x: auto; position: relative; }
+  code { font-family: "Fira Code", monospace; font-size: 0.95em; }
+  button.copy-btn { position: absolute; top: 10px; right: 10px; background: #1a73e8; border: none; color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.85em; }
+  button.copy-btn:hover { background: #1558b0; }
+  table { border-collapse: collapse; width: 100%; margin-bottom: 10px; background: #fff; }
+  th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+  th { background-color: #f1f1f1; }
+  ul { margin-left: 20px; }
+  .endpoint { font-weight: bold; color: #1a73e8; }
+</style>
+</head>
+<body>
+
+<h1>mSpace API Documentation</h1>
+<p>Base URL: <code>http://localhost:8080</code></p>
+
+<section>
+<h2 onclick="toggleSection(this)">Health Check <span style="font-weight:normal">(GET /health)</span></h2>
+<div class="collapsible-content">
+<p>Check if the API is running.</p>
+<pre><button class="copy-btn">Copy</button><code>curl -X GET http://localhost:8080/health</code></pre>
+<pre><button class="copy-btn">Copy</button><code>{
+  "status": "ok"
+}</code></pre>
+</div>
+</section>
+
+<section>
+<h2 onclick="toggleSection(this)">Items</h2>
+<div class="collapsible-content">
+
+<h3 onclick="toggleSection(this)">List Items (GET /api/items)</h3>
+<div class="collapsible-content">
+<pre><button class="copy-btn">Copy</button><code>curl -X GET http://localhost:8080/api/items</code></pre>
+</div>
+
+<h3 onclick="toggleSection(this)">Create Item (POST /api/items)</h3>
+<div class="collapsible-content">
+<pre><button class="copy-btn">Copy</button><code>curl -X POST http://localhost:8080/api/items \
+  -H "Content-Type: application/json" \
+  -d '{
+        "title": "Sorting Algorithms",
+        "author": "Alice",
+        "abstract": "Study on sorting algorithms",
+        "collection_id": 1,
+        "visibility": "PUBLIC"
+      }'</code></pre>
+</div>
+
+<h3 onclick="toggleSection(this)">Get Item by ID (GET /api/items/{id})</h3>
+<div class="collapsible-content">
+<pre><button class="copy-btn">Copy</button><code>curl -X GET http://localhost:8080/api/items/1</code></pre>
+</div>
+
+<h3 onclick="toggleSection(this)">Upload File (POST /api/items/{id}/file)</h3>
+<div class="collapsible-content">
+<pre><button class="copy-btn">Copy</button><code>curl -X POST http://localhost:8080/api/items/1/file \
+  -F "file=@/path/to/file.pdf"</code></pre>
+</div>
+
+</div>
+</section>
+
+<section>
+<h2 onclick="toggleSection(this)">Communities (GET /api/communities)</h2>
+<div class="collapsible-content">
+<pre><button class="copy-btn">Copy</button><code>curl -X GET http://localhost:8080/api/communities</code></pre>
+</div>
+</section>
+
+<section>
+<h2 onclick="toggleSection(this)">Collections (GET /api/collections)</h2>
+<div class="collapsible-content">
+<pre><button class="copy-btn">Copy</button><code>curl -X GET http://localhost:8080/api/collections</code></pre>
+</div>
+</section>
+
+<section>
+<h2 onclick="toggleSection(this)">Full-Text Search (GET /api/search)</h2>
+<div class="collapsible-content">
+<p>Search items by keyword, optionally filter by collection or author.</p>
+
+<table>
+<tr><th>Parameter</th><th>Description</th></tr>
+<tr><td>q</td><td>Search keyword(s) (required)</td></tr>
+<tr><td>collection_id</td><td>Filter by collection (optional)</td></tr>
+<tr><td>author</td><td>Filter by author (optional)</td></tr>
+</table>
+
+<h4>Example Requests:</h4>
+<pre><button class="copy-btn">Copy</button><code>curl -X GET "http://localhost:8080/api/search?q=sorting"</code></pre>
+<pre><button class="copy-btn">Copy</button><code>curl -X GET "http://localhost:8080/api/search?q=sorting&collection_id=1"</code></pre>
+<pre><button class="copy-btn">Copy</button><code>curl -X GET "http://localhost:8080/api/search?q=sorting&author=Alice"</code></pre>
+<pre><button class="copy-btn">Copy</button><code>curl -X GET "http://localhost:8080/api/search?q=sorting&collection_id=1&author=Alice"</code></pre>
+</div>
+</section>
+
+<section>
+<h2 onclick="toggleSection(this)">Notes</h2>
+<div class="collapsible-content">
+<ul>
+  <li>File uploads are stored in <strong>MinIO</strong> and accessible via presigned URLs.</li>
+  <li>PDF content is <strong>automatically extracted</strong> and indexed for full-text search.</li>
+  <li>Items have versioning, visibility, and workflow states: <code>DRAFT</code>, <code>SUBMITTED</code>, <code>PUBLISHED</code>, <code>REJECTED</code>.</li>
+  <li>Communities group collections, and collections group items.</li>
+  <li>The search endpoint queries <strong>title, author, abstract, and full-text content</strong>.</li>
+</ul>
+</div>
+</section>
+
+<script>
+function toggleSection(header) {
+  const content = header.nextElementSibling;
+  if(content.style.display === "block") {
+    content.style.display = "none";
+  } else {
+    content.style.display = "block";
+  }
+}
+
+document.querySelectorAll('button.copy-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const code = btn.nextElementSibling.textContent;
+    navigator.clipboard.writeText(code).then(() => {
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy', 1500);
+    });
+  });
+});
+</script>
+
+</body>
+</html>

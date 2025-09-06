@@ -1,0 +1,43 @@
+services:
+  db:
+    image: postgres:15
+    container_name: repository_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: repository
+    ports:
+      - "5433:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  minio:
+    image: minio/minio:latest
+    container_name: repository_minio
+    restart: always
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+
+  tika:
+    build:
+      context: .
+      dockerfile: Dockerfile.tika
+    container_name: repository_tika
+    ports:
+      - "9998:9998"
+    environment:
+      TIKA_OCR_ENABLED: "true"
+      TIKA_OCR_LANG: "eng"
+
+
+volumes:
+  db_data:
+  minio_data:

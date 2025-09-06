@@ -4,19 +4,15 @@ server:
 
 database:
   driver: "postgres"
-  dsn: "host=localhost user=repo password=secret dbname=repository port=5432 sslmode=disable"
+  dsn: "host=localhost user=postgres password=postgres dbname=repository port=5433 sslmode=disable"
 
 storage:
   provider: "minio"
   endpoint: "localhost:9000"
-  bucket: "repository"
+  bucket: "repo"
   access_key: "minioadmin"
   secret_key: "minioadmin"
   ssl: false
-
-search:
-  provider: "bleve"
-  index_path: "./data/index"
 
 auth:
   jwt_secret: "supersecretkey"
